@@ -9,13 +9,11 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# ── MongoDB Connection ────────────────────────────────────────────────────────
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017/")
 client = MongoClient(MONGO_URL)
 db = client["pothole_db"]
 collection = db["potholes"]
 
-# ── Load YOLOv8 Model ─────────────────────────────────────────────────────────
 model = YOLO("latest.pt")
 class_names = model.names
 
@@ -32,51 +30,37 @@ def detect_potholes(image):
     h, w, _ = image.shape
     image_area = h * w
     results = model.predict(image, conf=0.45)
-
     pothole_count = 0
     severities = []
-
     for r in results:
         boxes = r.boxes
         masks = r.masks
-
         if masks is not None and len(masks) > 0:
             masks_data = masks.data.cpu().numpy()
             for seg, box in zip(masks_data, boxes):
                 seg = cv2.resize(seg, (w, h))
                 contours, _ = cv2.findContours(
-                    seg.astype(np.uint8),
-                    cv2.RETR_EXTERNAL,
-                    cv2.CHAIN_APPROX_SIMPLE
-                )
+                    seg.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 for contour in contours:
                     d = int(box.cls)
                     c = class_names[d]
                     confidence = float(box.conf)
                     contour_area = cv2.contourArea(contour)
-
-                    # Calculate severity
                     severity = calculate_severity(confidence, contour_area, image_area)
                     severities.append(severity)
-
-                    # Pick color based on severity
                     color = (0, 0, 255) if severity == "High" else \
                             (0, 165, 255) if severity == "Medium" else \
                             (0, 255, 0)
-
                     x, y, bw, bh = cv2.boundingRect(contour)
                     cv2.polylines(image, [contour], True, color=color, thickness=2)
                     cv2.putText(image, f"{c} [{severity}]", (x, y - 10),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
                     pothole_count += 1
-
-    # Overall severity = worst one found
     overall_severity = "Low"
     if "High" in severities:
         overall_severity = "High"
     elif "Medium" in severities:
         overall_severity = "Medium"
-
     return image, pothole_count, overall_severity
 
 
@@ -90,9 +74,9 @@ def detect():
     if "image" not in request.files:
         return jsonify({"error": "No image provided"}), 400
 
-    # Get location from request
     lat = request.form.get("latitude", None)
     lon = request.form.get("longitude", None)
+    device_id = request.form.get("device_id", "unknown")  # ← NEW
 
     file = request.files["image"]
     img_bytes = file.read()
@@ -102,15 +86,12 @@ def detect():
     if image is None:
         return jsonify({"error": "Invalid image"}), 400
 
-    # Run detection
     annotated_image, pothole_count, severity = detect_potholes(image)
 
-    # Convert annotated image to base64
     _, buffer = cv2.imencode(".jpg", annotated_image)
     img_base64 = base64.b64encode(buffer).decode("utf-8")
 
-    # Save to MongoDB if pothole detected
-    print(f"Debug - lat: {lat}, lon: {lon}, count: {pothole_count}")
+    doc_id = None
     if pothole_count > 0 and lat is not None and lon is not None:
         document = {
             "latitude": float(lat),
@@ -119,12 +100,12 @@ def detect():
             "pothole_count": pothole_count,
             "image_base64": img_base64,
             "timestamp": datetime.now(),
-            "status": "reported"
+            "status": "reported",
+            "device_id": device_id  # ← NEW
         }
         result = collection.insert_one(document)
         doc_id = str(result.inserted_id)
-        print(f"✅ Inserted with ID: {doc_id}")
-        print(f"✅ Saved to MongoDB: {severity} severity at {lat}, {lon}")
+        print(f"✅ Saved with device_id: {device_id}, severity: {severity}")
 
     return jsonify({
         "pothole_detected": pothole_count > 0,
@@ -137,12 +118,16 @@ def detect():
 
 @app.route("/potholes", methods=["GET"])
 def get_potholes():
-    """Get all reported potholes — useful for map display"""
+    device_id = request.args.get("device_id", None)  # ← NEW
+    query = {}
+    if device_id:
+        query["device_id"] = device_id  # filter by user if provided
     potholes = []
-    for doc in collection.find({}, {"_id": 0, "image_base64": 0}):
+    for doc in collection.find(query, {"_id": 0, "image_base64": 0}):
         doc["timestamp"] = str(doc["timestamp"])
         potholes.append(doc)
     return jsonify(potholes)
+
 
 @app.route("/view/<id>", methods=["GET"])
 def view_image(id):
