@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaflet Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        .custom-icon div {
+            border: 1px solid black;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        #pothole-count {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000; /* Ensure it stays above the map */
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<div id="pothole-count">Potholes Nearby: 0</div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    // Initialize the map and set its view
+    var map = L.map('map').setView([20.5937, 78.9629], 5);
+
+    // Add a tile layer to the map
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var potholeLocations = [];
+    var userMovedMap = false;
+
+    // Track whether the user has moved the map manually
+    map.on('movestart', function() {
+        userMovedMap = true;
+    });
+
+    // Add a pothole marker to the map
+    function addPothole(lat, lon) {
+        var pothole = [lat, lon];
+        potholeLocations.push(pothole);
+        L.marker(pothole, {
+            icon: L.divIcon({
+                className: 'custom-icon',
+                html: '<div style="background-color:red; width:10px; height:10px; border-radius:50%;"></div>'
+            })
+        }).addTo(map).bindPopup("Pothole at: " + lat.toFixed(5) + ", " + lon.toFixed(5));
+        updatePotholeCount(map.getCenter().lat, map.getCenter().lng);
+    }
+
+    // Update the count of potholes within a 5km radius of the given coordinates
+    function updatePotholeCount(lat, lon) {
+        var radius = 5000; // 5 km radius
+        var count = 0;
+        var userLocation = L.latLng(lat, lon);
+        potholeLocations.forEach(function(pothole) {
+            var potholeLatLng = L.latLng(pothole);
+            if (userLocation.distanceTo(potholeLatLng) <= radius) {
+                count++;
+            }
+        });
+        document.getElementById('pothole-count').textContent = "Potholes Nearby: " + count;
+    }
+
+    // Manually add predefined potholes
+    function addPredefinedPotholes() {
+        var predefinedPotholes = [
+            {lat: 19.0760, lon: 72.8777}, // Mumbai
+            {lat: 13.0827, lon: 80.2707}, // Chennai
+            {lat: 28.6139, lon: 77.2090}, // Delhi
+            {lat: 22.5726, lon: 88.3639}, // Kolkata
+            {lat: 17.3850, lon: 78.4867}  // Hyderabad
+        ];
+
+        predefinedPotholes.forEach(function(pothole) {
+            addPothole(pothole.lat, pothole.lon);
+        });
+    }
+
+    // Add predefined potholes
+    addPredefinedPotholes();
+
+    // Handle messages to update potholes and current location
+    window.addEventListener('message', function(event) {
+        var data = event.data;
+        if (data.type === 'location') {
+            addPothole(data.lat, data.lon);
+        } else if (data.type === 'currentLocation') {
+            updatePotholeCount(data.lat, data.lon);
+            if (map.currentLocationMarker) {
+                map.removeLayer(map.currentLocationMarker);
+            }
+            map.currentLocationMarker = L.marker([data.lat, data.lon], {
+                icon: L.divIcon({
+                    className: 'custom-icon',
+                    html: '<div style="background-color:blue; width:15px; height:15px; border-radius:50%;"></div>'
+                })
+            }).addTo(map).bindPopup('Your Current Location');
+            // Only set the view if the user hasn't moved the map manually
+            if (!userMovedMap) {
+                map.setView([data.lat, data.lon], 15);
+            }
+        }
+    });
+</script>
+</body>
+</html>

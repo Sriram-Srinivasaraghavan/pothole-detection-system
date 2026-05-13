@@ -1,0 +1,29 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/splash_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/pot" />
+
+    <Button
+        android:id="@+id/enter_button"
+        android:layout_width="220dp"
+        android:layout_height="60dp"
+
+        android:text="GET STARTED"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+
+        android:background="@drawable/button_3d"
+
+        android:elevation="12dp"
+
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="540dp"/>
+</RelativeLayout>
