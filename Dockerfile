@@ -13,6 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/app.py .
 COPY backend/latest.pt .
 
-EXPOSE 5000
+EXPOSE 8080
 
 CMD ["python", "app.py"]
