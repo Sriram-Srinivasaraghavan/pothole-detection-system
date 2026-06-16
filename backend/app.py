@@ -9,9 +9,10 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017/")
+MONGO_URL = os.environ["MONGO_URL"]
 client = MongoClient(MONGO_URL)
 db = client["pothole_db"]
+print("Mongo URL =", MONGO_URL)
 collection = db["potholes"]
 
 model = YOLO("latest.pt")
