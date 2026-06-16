@@ -58,9 +58,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private static final String TAG = "MainActivity";
     private static final String PREFS_NAME = "PotholePrefs";
     private static final String DEVICE_ID_KEY = "device_id";
-    private static final String API_URL = "https://pothole-detection-system-hwwr.onrender.com/detect";
-    private static final String POTHOLES_URL = "https://pothole-detection-system-hwwr.onrender.com/potholes";
-    private static final String VIEW_URL = "https://pothole-detection-system-hwwr.onrender.com/view/";
+    private static final String API_URL = "https://pothole-api.delightfulmeadow-705d0617.centralindia.azurecontainerapps.io/detect";
+    private static final String POTHOLES_URL = "https://pothole-api.delightfulmeadow-705d0617.centralindia.azurecontainerapps.io/potholes";
+    private static final String VIEW_URL = "https://pothole-api.delightfulmeadow-705d0617.centralindia.azurecontainerapps.io/";
+
     private ImageView imageView;
     private WebView webView;
     private LocationManager locationManager;
@@ -92,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             prefs.edit().putString(DEVICE_ID_KEY, deviceId).apply();
             Log.d(TAG, "Generated new device_id: " + deviceId);
         }
+        Log.d(TAG, "DEVICE ID = " + deviceId);
         return deviceId;
     }
 
@@ -175,8 +177,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setDoOutput(true);
-                conn.setConnectTimeout(120000);
-                conn.setReadTimeout(120000);
+                conn.setConnectTimeout(15000);
+                conn.setReadTimeout(15000);
                 conn.setRequestProperty("Content-Type",
                         "multipart/form-data; boundary=" + boundary);
 

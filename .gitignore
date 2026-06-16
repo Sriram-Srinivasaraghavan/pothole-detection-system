@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+frontend/.gradle/
+frontend/.idea/
+frontend/app/build/
+*.iml
