@@ -298,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     " | View image: " + viewUrl;
 
             Intent smsIntent = new Intent(Intent.ACTION_VIEW);
-            smsIntent.setData(Uri.parse("sms:9884875776"));
+            smsIntent.setData(Uri.parse("sms:"));
             smsIntent.putExtra("sms_body", message);
             startActivity(smsIntent);
 
