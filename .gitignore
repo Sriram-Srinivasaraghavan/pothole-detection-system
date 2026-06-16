@@ -220,3 +220,6 @@ frontend/.gradle/
 frontend/.idea/
 frontend/app/build/
 *.iml
+.idea/
+.gradle/
+*.iml
