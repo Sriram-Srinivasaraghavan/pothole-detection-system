@@ -1,13 +1,14 @@
 # 🕳️ Pothole Detection System
 
-An end-to-end AI-powered pothole detection and reporting system — from a trained YOLOv8 model to a Dockerized Flask API integrated with an Android app for real-time civic reporting.
+An end-to-end pothole detection and civic reporting platform built using YOLOv8, Android, Flask, Docker, MongoDB Atlas, and Microsoft Azure.
 
 ## 🎯 What it does
 
 - Detects potholes in real-time using a custom trained YOLOv8 instance segmentation model
+- Cloud-hosted Flask API deployed on Microsoft Azure Container Apps
 - Calculates severity (High / Medium / Low) based on confidence score and pothole size
 - Reports geo-tagged detections to authorities via SMS with Google Maps link
-- Stores every detection in MongoDB with annotated image, location and timestamp
+- Stores every detection in MongoDB Atlas with annotated image, location and timestamp
 - Fully containerized with Docker — runs with one command
 
 ## 🏗️ Architecture
@@ -15,13 +16,14 @@ An end-to-end AI-powered pothole detection and reporting system — from a train
 ```
 📱 Android App
       ↓ captures image + GPS
-🌐 Flask REST API (Docker)
+🌐 Azure Container App (Flask)
       ↓ runs inference
 🧠 YOLOv8 Model (latest.pt)
       ↓ saves detection
-🗄️ MongoDB (Docker)
-      ↓ sends alert
-📲 SMS to Authority
+🗄️ MongoDB Atlas (Database)
+      ↓ Stores detections, images, locations, timestamps
+📲 Report Generation
+      ↓ SMS message with location and image link
 ```
 
 ## 📊 Results
@@ -29,7 +31,7 @@ An end-to-end AI-powered pothole detection and reporting system — from a train
 - **92% detection accuracy** on custom pothole dataset
 - **3 severity levels** — color coded contours (Red/Orange/Green)
 - **Real-time** — detection + SMS alert in under 3 seconds
-- **Tested** on 100+ real road images
+- **Tested** on 500+ real road images
 
 ## 🛠️ Tech Stack
 
@@ -37,8 +39,10 @@ An end-to-end AI-powered pothole detection and reporting system — from a train
 |---|---|
 | ML Model | YOLOv8 Instance Segmentation (Ultralytics) |
 | Backend API | Python, Flask |
-| Database | MongoDB |
-| Containerization | Docker, Docker Compose |
+| Database | MongoDB Atlas |
+|Computer Vision | Open CV |
+| Containerization | Docker |
+|Cloud Platform | Microsoft Azure Container Apps |
 | Mobile App | Android (Java) |
 | Maps | Leaflet.js |
 
@@ -53,7 +57,7 @@ cd pothole-detection-system/backend
 docker-compose up
 ```
 
-API runs at `http://localhost:5000`
+API runs at `http://localhost:8080`
 
 ## 📡 API Endpoints
 
@@ -74,15 +78,8 @@ python detect.py
 
 Opens Gradio UI at `http://127.0.0.1:7860`
 
-## 📱 Android App
-
-Full Android app source with Leaflet map, camera integration and SMS reporting:
-→ [Pothole Detection Android App](https://github.com/sarathi-c/Pothole-Detection-and-Reporting-System)
-
-**My contribution:** Replaced TFLite model with custom YOLOv8 backend API, added severity scoring, MongoDB integration and MMS reporting.
-
 ## 👤 Author
 
-**Sriram Srinivasaraghavan** — ECE Engineer | AI/ML | Full Stack
+**Sriram Srinivasaraghavan** — Software Engineer | Java • Spring Boot • Docker | Backend & Cloud Engineering
 
-[LinkedIn](https://linkedin.com/in/Sriram-S) · [GitHub](https://github.com/Sriram-Srinivasaraghavan)
+[LinkedIn](https://www.linkedin.com/in/sriramsrinivasaraghavan) · [GitHub](https://github.com/Sriram-Srinivasaraghavan)
